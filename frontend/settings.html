@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Settings — ReSolve</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/assets/css/base.css">
+  <link rel="stylesheet" href="/assets/css/app.css">
+  <link rel="stylesheet" href="/assets/css/settings.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="navbar" id="navbar"></aside>
+
+    <div class="app-main">
+      <header class="page-head">
+        <div>
+          <p class="eyebrow">Account</p>
+          <h1>Settings</h1>
+          <p class="muted">Your profile and session.</p>
+        </div>
+      </header>
+
+      <div class="page-body">
+        <p id="page-alert" class="alert hidden" role="status" aria-live="polite"></p>
+
+        <div class="settings-grid">
+          <section class="settings-section">
+            <div class="settings-section-head">
+              <h3>Profile</h3>
+              <p>How your name appears in the app.</p>
+            </div>
+            <div class="settings-section-body">
+              <form class="settings-form" id="profile-form" novalidate>
+                <div class="field">
+                  <label class="label" for="profile-name">Full name</label>
+                  <input class="input" id="profile-name" name="full_name" type="text" autocomplete="name" placeholder="Your name">
+                </div>
+                <div>
+                  <button class="btn btn-primary" id="save-profile" type="submit">Save changes</button>
+                </div>
+              </form>
+            </div>
+          </section>
+
+          <section class="settings-section">
+            <div class="settings-section-head">
+              <h3>Account details</h3>
+              <p>Email and signup date cannot be changed.</p>
+            </div>
+            <div class="settings-section-body">
+              <dl style="margin:0">
+                <div class="readonly-value"><dt>Email</dt><dd id="profile-email">—</dd></div>
+                <div class="readonly-value"><dt>Joined</dt><dd id="profile-joined">—</dd></div>
+                <div class="readonly-value"><dt>User ID</dt><dd class="mono tiny" id="profile-id">—</dd></div>
+              </dl>
+            </div>
+          </section>
+
+          <section class="settings-section">
+            <div class="settings-section-head">
+              <h3>Session</h3>
+              <p>Signing out clears the token stored in this browser.</p>
+            </div>
+            <div class="settings-section-body">
+              <div class="session-note">
+                <p>Your progress lives on the server and stays linked to your account.</p>
+                <div><button class="btn" id="sign-out" type="button">Sign out</button></div>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="/assets/js/pages/settings.js"></script>
+</body>
+</html>

@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Learn — ReSolve</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/assets/css/base.css">
+  <link rel="stylesheet" href="/assets/css/app.css">
+  <link rel="stylesheet" href="/assets/css/learn.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="navbar" id="navbar"></aside>
+
+    <div class="app-main">
+      <header class="page-head">
+        <div>
+          <p class="eyebrow">Practice</p>
+          <h1>Search a problem</h1>
+          <p class="muted">Start typing a title, or paste a LeetCode URL.</p>
+        </div>
+      </header>
+
+      <div class="page-body">
+        <form class="search-bar" id="search-form" autocomplete="off">
+          <div class="search-input-wrap">
+            <input class="input" id="problem-input" type="text" spellcheck="false"
+                   placeholder="Two Sum, 3Sum, Trapping Rain Water…" aria-label="Search LeetCode problems">
+            <div class="suggestions" id="suggestions" data-open="false" role="listbox"></div>
+          </div>
+          <button class="btn" id="load-button" type="submit">Load</button>
+        </form>
+
+        <p id="page-alert" class="alert hidden" role="status" aria-live="polite"></p>
+
+        <section class="empty" id="empty-state">
+          <p>Load a problem to see its statement and write your solution alongside it.</p>
+        </section>
+
+        <div class="workspace hidden" id="workspace">
+          <section class="pane workspace-statement">
+            <div class="pane-head">
+              <span class="pane-title">Question</span>
+              <span class="tiny muted" id="statement-number"></span>
+            </div>
+            <div class="pane-body pane-body-flush">
+              <div class="statement-head">
+                <h2 class="statement-title" id="statement-title"></h2>
+                <div class="tag-row">
+                  <span class="tag" id="statement-difficulty"></span>
+                  <span class="tag-row" id="statement-tags"></span>
+                </div>
+                <p style="margin-top:12px">
+                  <a class="statement-link" id="statement-link" href="#" target="_blank" rel="noreferrer">Open on LeetCode ↗</a>
+                </p>
+              </div>
+              <div class="pane-body statement" id="statement-body"></div>
+            </div>
+          </section>
+
+          <section class="pane workspace-editor" id="editor-pane">
+            <div class="pane-head">
+              <span class="pane-title">Your solution</span>
+              <select class="language-select" id="language-select" aria-label="Language"></select>
+            </div>
+            <textarea class="code-editor" id="code-editor" spellcheck="false"
+                      placeholder="// Write your solution here"></textarea>
+            <div class="pane-head" style="border-bottom:0;border-top:1px solid var(--line)">
+              <span class="tiny muted" id="run-status"></span>
+              <div class="spacer row row-2">
+                <button class="btn btn-sm" id="reset-button" type="button">Clear</button>
+                <button class="btn btn-sm" id="save-button" type="button">Save</button>
+                <button class="btn btn-primary btn-sm" id="run-button" type="button">Run ▸</button>
+              </div>
+            </div>
+          </section>
+
+          <section class="pane workspace-output">
+            <div class="pane-head">
+              <span class="pane-title">Output</span>
+              <span class="badge hidden" id="output-badge"></span>
+            </div>
+            <pre class="output-pane" id="output">Run your code to see the output.</pre>
+            <div class="run-meta" id="run-meta"></div>
+          </section>
+
+          <section class="pane workspace-input">
+            <div class="pane-head"><span class="pane-title">Standard input</span></div>
+            <textarea class="stdin-input" id="stdin-input" spellcheck="false"
+                      placeholder="3 4"></textarea>
+          </section>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="/assets/js/pages/learn.js"></script>
+</body>
+</html>

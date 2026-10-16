@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Home — ReSolve</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/assets/css/base.css">
+  <link rel="stylesheet" href="/assets/css/app.css">
+  <link rel="stylesheet" href="/assets/css/home.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="navbar" id="navbar"></aside>
+
+    <div class="app-main">
+      <header class="page-head">
+        <div>
+          <p class="eyebrow">Analytics</p>
+          <h1>Your progress</h1>
+          <p class="muted">What is due, what slipped, and where your practice is going.</p>
+        </div>
+        <div class="row row-3">
+          <span class="tiny muted" id="updated-at"></span>
+          <button class="btn btn-sm" id="refresh" type="button">Refresh</button>
+          <a class="btn btn-primary btn-sm" href="/learn">Practise now</a>
+        </div>
+      </header>
+
+      <div class="page-body">
+        <p id="page-alert" class="alert hidden" role="status" aria-live="polite"></p>
+
+        <section class="stat-grid" id="stat-grid"></section>
+
+        <div class="dashboard-columns">
+          <section class="panel">
+            <div class="panel-head"><h3>Due today</h3></div>
+            <div class="panel-body panel-body-flush hidden" id="due-today-list"></div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-head"><h3>Overdue</h3></div>
+            <div class="panel-body panel-body-flush" id="overdue-list"></div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-head"><h3>Next 7 days</h3></div>
+            <div class="panel-body panel-body-flush">
+              <div class="timeline" id="upcoming-list"></div>
+            </div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-head"><h3>By topic</h3></div>
+            <div class="panel-body">
+              <div class="bar-list" id="topic-bars"></div>
+            </div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-head"><h3>By difficulty</h3></div>
+            <div class="panel-body">
+              <div class="bar-list" id="difficulty-bars"></div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="/assets/js/pages/home.js"></script>
+</body>
+</html>

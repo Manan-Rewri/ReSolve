@@ -1,0 +1,36 @@
+/* Landing page — deliberately minimal: wordmark and two actions. */
+.landing-body {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  background: var(--paper);
+  background-image: radial-gradient(circle at 1px 1px, var(--line) 1px, transparent 0);
+  background-size: 28px 28px;
+}
+
+.landing-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-6);
+  text-align: center;
+  padding: var(--space-5);
+}
+
+.landing-mark {
+  font-size: clamp(3rem, 12vw, 6rem);
+  font-weight: 700;
+  letter-spacing: -0.05em;
+  line-height: 1;
+}
+
+.landing-mark span { color: var(--muted); font-weight: 500; }
+
+.landing-actions {
+  display: flex;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.landing-actions .btn { padding: 12px 26px; }

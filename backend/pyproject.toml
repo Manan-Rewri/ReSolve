@@ -1,0 +1,12 @@
+[tool.pytest.ini_options]
+minversion = "7.0"
+addopts = "-ra -q -v"
+testpaths = [
+    "tests",
+]
+python_files = [
+    "test_*.py"
+]
+pythonpath = [
+    "."
+]
