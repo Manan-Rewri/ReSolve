@@ -26,6 +26,10 @@ query questionData($titleSlug: String!) {
     topicTags { name }
     hints
     sampleTestCase
+    codeSnippets {
+      langSlug
+      code
+    }
   }
 }
 """

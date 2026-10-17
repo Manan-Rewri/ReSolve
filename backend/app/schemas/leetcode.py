@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 from pydantic import BaseModel, Field
 
@@ -18,6 +18,13 @@ class LeetCodeExample(BaseModel):
 
     input: str = Field(..., description="Example input, collapsed to one line")
     output: str = Field("", description="Expected output for that input")
+    stdin: Optional[str] = Field(
+        None,
+        description=(
+            "Example input rendered in the layout the generated driver reads, "
+            "ready to paste into the input box"
+        ),
+    )
 
 
 class LeetCodeQuestionData(BaseModel):
@@ -48,6 +55,14 @@ class LeetCodeQuestionData(BaseModel):
     examples: List[LeetCodeExample] = Field(
         default_factory=list,
         description="Input/Output examples parsed from the statement",
+    )
+    starters: Dict[str, str] = Field(
+        default_factory=dict,
+        description=(
+            "Runnable starter per LeetCode language slug. Built from the official "
+            "stub plus a generated driver, so the user only writes the method body. "
+            "Languages whose signature cannot be driven are omitted."
+        ),
     )
 
 
