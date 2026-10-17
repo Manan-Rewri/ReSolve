@@ -186,6 +186,14 @@
 
 .code-editor:focus { outline: none; }
 
+/* Keyboard shortcut reminder under the editor. */
+.editor-hint {
+  margin: 0;
+  padding: var(--space-1) var(--space-4) var(--space-2);
+  border-bottom: 1px solid var(--line);
+  background: var(--paper);
+}
+
 /* Flagged when the submitted code fails to compile or run. */
 .pane-flagged { border-color: var(--ink); border-width: 2px; }
 .pane-flagged .pane-head { background: var(--ink); color: var(--paper); border-bottom-color: var(--ink); }

@@ -3,6 +3,7 @@ import { $, setAlert, setBusy, show } from "../core/dom.js";
 import { renderNavbar, escapeHtml } from "../components/navbar.js";
 import { createProblemSearch } from "../components/problem-search.js";
 import { showToast } from "../components/toast.js";
+import { lineRange, placeholderFor, toggleComment } from "../core/comments.js";
 import { sampleToStdin, templateFor } from "../core/templates.js";
 import { requireAuth, ROUTES } from "../core/session.js";
 
@@ -15,8 +16,38 @@ let editorIsTemplate = true;
 
 function applyTemplate() {
   editor.value = templateFor(languageSelect.value);
+  editor.placeholder = placeholderFor(languageSelect.value);
   editorIsTemplate = true;
   clearRunResult();
+}
+
+/**
+ * Indents or outdents every line the selection touches, so a whole block can
+ * be shifted in one keystroke. Outdenting stops at the left margin rather
+ * than pulling characters off the start of the line.
+ */
+function shiftIndent(text, selectionStart, selectionEnd, direction) {
+  const lines = text.split("\n");
+  const { first, last } = lineRange(text, selectionStart, selectionEnd);
+
+  const updated = lines.map((line, index) => {
+    if (index < first || index > last) return line;
+    if (direction > 0) return `  ${line}`;
+    // Remove one indent level; a blank line is left alone rather than
+    // accumulating trailing spaces.
+    return line.trim() === "" ? line : line.replace(/^[ \t]{1,2}/, "");
+  });
+
+  const head = lines.slice(0, first);
+  const tail = lines.slice(last + 1);
+  const prefixLength = head.join("\n").length + (head.length ? 1 : 0);
+  const blockLength = updated.slice(first, last + 1).join("\n").length;
+
+  return {
+    text: [...head, ...updated, ...tail].join("\n"),
+    selectionStart: prefixLength,
+    selectionEnd: prefixLength + blockLength,
+  };
 }
 
 const workspace = $("workspace");
@@ -396,15 +427,60 @@ async function loadLanguages() {
   }
 }
 
+/** Applies an edit to the editor and keeps the caret where it belongs. */
+function replaceSelection(text, start, end, selectionStart, selectionEnd) {
+  editor.value = text;
+  editor.selectionStart = selectionStart;
+  editor.selectionEnd = selectionEnd;
+  editorIsTemplate = false;
+  saveWorkspaceState(currentProblem?.title_slug);
+}
+
 $("code-editor").addEventListener("keydown", (event) => {
+  const target = event.currentTarget;
+
   if (event.key === "Tab") {
     event.preventDefault();
-    const target = event.currentTarget;
+
+    // A multi-line selection is indented or outdented as a block, which is
+    // what makes commenting and uncommenting a block practical.
+    if (target.selectionStart !== target.selectionEnd) {
+      const { text, selectionStart, selectionEnd } = shiftIndent(
+        target.value,
+        target.selectionStart,
+        target.selectionEnd,
+        event.shiftKey ? -1 : 1
+      );
+      replaceSelection(text, target.selectionStart, target.selectionEnd, selectionStart, selectionEnd);
+      return;
+    }
+
     const start = target.selectionStart;
-    target.value = `${target.value.slice(0, start)}  ${target.value.slice(target.selectionEnd)}`;
-    target.selectionStart = target.selectionEnd = start + 2;
-    editorIsTemplate = false;
+    replaceSelection(
+      target.value.slice(0, start) + (event.shiftKey ? "" : "  ") + target.value.slice(start),
+      start,
+      target.selectionEnd,
+      start + (event.shiftKey ? 0 : 2),
+      start + (event.shiftKey ? 0 : 2)
+    );
+    return;
   }
+
+  // Ctrl+/ and Cmd+/ toggle comments in whichever language is selected.
+  if ((event.ctrlKey || event.metaKey) && event.key === "/") {
+    event.preventDefault();
+    const result = toggleComment(
+      target.value,
+      target.selectionStart,
+      target.selectionEnd,
+      languageSelect.value
+    );
+    if (result.changed) {
+      replaceSelection(result.text, target.selectionStart, target.selectionEnd, result.selectionStart, result.selectionEnd);
+    }
+    return;
+  }
+
   if ((event.ctrlKey || event.metaKey) && event.key === "Enter") {
     event.preventDefault();
     runCode();
