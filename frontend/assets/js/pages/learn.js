@@ -46,6 +46,11 @@ async function loadProblem(titleOrUrl, suggestion) {
     renderProblem(currentProblem);
     show(emptyState, false);
     show(workspace, true);
+
+    // Keep the problem in the URL so a refresh lands back here, not the search.
+    const slug = currentProblem.title_slug || titleOrUrl;
+    window.history.replaceState({}, "", `${ROUTES.learn}?q=${encodeURIComponent(slug)}`);
+    restoreWorkspaceState(slug);
   } catch (error) {
     const message =
       error instanceof ApiError ? error.message : "Could not load that problem.";
@@ -53,6 +58,37 @@ async function loadProblem(titleOrUrl, suggestion) {
     if (suggestion) search.clear();
   } finally {
     setBusy($("load-button"), false);
+  }
+}
+
+const STATE_PREFIX = "resolve.workspace.";
+
+function saveWorkspaceState(slug) {
+  if (!slug) return;
+  try {
+    sessionStorage.setItem(
+      STATE_PREFIX + slug,
+      JSON.stringify({ code: editor.value, stdin: $("stdin-input").value })
+    );
+  } catch {
+    /* private mode / quota - not worth surfacing */
+  }
+}
+
+/** Restores this problem's code and stdin after a refresh. */
+function restoreWorkspaceState(slug) {
+  try {
+    const saved = JSON.parse(sessionStorage.getItem(STATE_PREFIX + slug) || "null");
+    if (!saved) return;
+    if (typeof saved.code === "string" && saved.code.trim()) {
+      editor.value = saved.code;
+      editorIsTemplate = false;
+    }
+    if (typeof saved.stdin === "string" && saved.stdin.trim()) {
+      $("stdin-input").value = saved.stdin;
+    }
+  } catch {
+    /* ignore malformed state */
   }
 }
 
@@ -377,7 +413,12 @@ $("code-editor").addEventListener("keydown", (event) => {
 
 editor.addEventListener("input", () => {
   editorIsTemplate = false;
+  saveWorkspaceState(currentProblem?.title_slug);
   if (editor.classList.contains("has-error")) setEditorError(false);
+});
+
+$("stdin-input").addEventListener("input", () => {
+  saveWorkspaceState(currentProblem?.title_slug);
 });
 
 // Choosing a different language swaps in that language's starter code.
@@ -395,9 +436,8 @@ resetWorkspace();
 applyTemplate();
 loadLanguages();
 
-// Arriving from Home with ?q=Two%20Sum loads that problem straight away.
+// ?q= in the URL keeps a refresh on the same problem instead of the search bar.
 const requestedProblem = new URLSearchParams(window.location.search).get("q");
 if (requestedProblem) {
   loadProblem(requestedProblem, null);
-  window.history.replaceState({}, "", ROUTES.learn);
 }
