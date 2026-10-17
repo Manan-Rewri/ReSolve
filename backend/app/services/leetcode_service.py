@@ -3,14 +3,80 @@ from typing import Any, Dict, List, Optional
 
 from fastapi import HTTPException, status
 
-from app.schemas.leetcode import LeetCodeQuestionData
+from app.schemas.leetcode import LeetCodeExample, LeetCodeQuestionData
 from app.services import leetcode_client
+from app.services.sheets import get_slugs
 from app.utils.text import html_to_text, to_problem_slug
 
 URL_IN_TEXT_PATTERN = re.compile(r"https?://[^\s]+")
 DEFAULT_DIFFICULTY = "Medium"
 DEFAULT_TOPIC = "Algorithms"
 EMPTY_STATEMENT = "<p>No description available.</p>"
+
+# ReSolve is for DSA practice, so database-engineering and data-analysis
+# problems are filtered out of autocomplete. Every genuine DSA problem carries
+# at least one topic tag; the untagged ones are LeetCode's SQL / pandas tracks.
+EXCLUDED_TOPICS = frozenset({"database", "pandas"})
+EXCLUDED_TITLE_KEYWORDS = (
+    "sql",
+    "database",
+    "mysql",
+    "postgres",
+    "nosql",
+    "redis",
+    "query builder",
+)
+
+
+EXAMPLE_PATTERN = re.compile(
+    r"<\s*strong\s*>\s*Input\s*:\s*<\s*/\s*strong\s*>(.*?)"
+    r"<\s*strong\s*>\s*Output\s*:\s*<\s*/\s*strong\s*>(.*?)"
+    r"(?=<\s*strong|</\s*pre|$)",
+    re.IGNORECASE | re.DOTALL,
+)
+
+MAX_EXAMPLES = 5
+
+
+def _one_line(text: str) -> str:
+    return " ".join(html_to_text(text).split())
+
+
+def extract_examples(content_html: str) -> List[Dict[str, str]]:
+    """Reads the Input/Output examples out of a LeetCode statement.
+
+    Examples live inside <pre> blocks as
+      <strong>Input:</strong> ... <strong>Output:</strong> ...
+    Returns at most MAX_EXAMPLES pairs, and [] when the statement does not
+    follow that shape (graphical output, prose-only examples, and so on).
+    """
+    if not content_html:
+        return []
+
+    examples = []
+    for match in EXAMPLE_PATTERN.finditer(content_html):
+        example_input = _one_line(match.group(1))
+        if not example_input:
+            continue
+        examples.append({"input": example_input, "output": _one_line(match.group(2))})
+        if len(examples) >= MAX_EXAMPLES:
+            break
+    return examples
+
+
+def extract_expected_output(content_html: str) -> Optional[str]:
+    """Example 1's expected output, used to judge a submitted answer."""
+    examples = extract_examples(content_html)
+    return examples[0]["output"] if examples and examples[0]["output"] else None
+
+
+def _is_dsa_problem(title: str, tags: List[str]) -> bool:
+    if not tags:
+        return False
+    if any(tag.strip().lower() in EXCLUDED_TOPICS for tag in tags):
+        return False
+    lowered = title.lower()
+    return not any(keyword in lowered for keyword in EXCLUDED_TITLE_KEYWORDS)
 
 
 def _to_question_data(
@@ -32,6 +98,8 @@ def _to_question_data(
         content_text=html_to_text(content_html),
         hints=question.get("hints") or [],
         sample_test_case=question.get("sampleTestCase"),
+        sample_expected_output=extract_expected_output(content_html),
+        examples=[LeetCodeExample(**example) for example in extract_examples(content_html)],
     )
 
 
@@ -79,15 +147,35 @@ class LeetCodeService:
         return _to_question_data(question, slug, cleaned_input)
 
     async def search_suggestions(
-        self, search_term: str, limit: int = 8
+        self, search_term: str, limit: int = 8, sheet_id: Optional[str] = None
     ) -> List[Dict[str, Any]]:
-        """Returns [] instead of raising so the search bar degrades when LeetCode is down."""
+        """Returns [] instead of raising so the search bar degrades when LeetCode is down.
+
+        `sheet_id` restricts results to that practice sheet. An unknown id or
+        None searches everything.
+        """
         query = (search_term or "").strip()
         if not query:
             return []
 
-        rows = await leetcode_client.search_question_suggestions(query, limit)
-        return [_to_suggestion(row) for row in rows]
+        allowed_slugs = get_slugs(sheet_id)
+
+        # Over-fetch, because filtering can discard some rows.
+        rows = await leetcode_client.search_question_suggestions(query, limit * 3)
+        kept = [
+            row
+            for row in rows
+            if _is_dsa_problem(
+                row.get("title") or "",
+                [tag["name"] for tag in row.get("topicTags") or [] if "name" in tag],
+            )
+        ]
+        suggestions = [_to_suggestion(row) for row in kept]
+
+        if allowed_slugs is not None:
+            suggestions = [s for s in suggestions if s["title_slug"] in allowed_slugs]
+
+        return suggestions[:limit]
 
 
 leetcode_service = LeetCodeService()

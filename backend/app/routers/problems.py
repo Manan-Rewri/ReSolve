@@ -24,6 +24,7 @@ from app.services.analytics_service import analytics_service
 from app.services.leetcode_service import leetcode_service
 from app.services.problem_service import problem_service
 from app.services.review_service import review_service
+from app.services.sheets import SHEETS
 
 router = APIRouter(prefix="/problems", tags=["Problems"])
 
@@ -94,13 +95,31 @@ async def fetch_leetcode(payload: LeetCodeFetchRequest):
     "/search",
     response_model=List[LeetCodeSuggestion],
     summary="Search LeetCode problems (autocomplete)",
-    description="Returns matching LeetCode problems for the search-bar dropdown.",
+    description="Returns matching LeetCode problems, optionally scoped to a practice sheet.",
 )
 async def search_leetcode(
     q: str = Query(..., min_length=1, max_length=100, description="Title, number, or keyword"),
     limit: int = Query(8, ge=1, le=20, description="Maximum suggestions to return"),
+    sheet: Optional[str] = Query(None, description="Practice sheet id, e.g. striver or leetcode"),
 ):
-    return await leetcode_service.search_suggestions(q, limit=limit)
+    return await leetcode_service.search_suggestions(q, limit=limit, sheet_id=sheet)
+
+
+@router.get(
+    "/sheets",
+    summary="List practice sheets",
+    description="Returns the practice sheets available to the search dropdown.",
+)
+def list_sheets():
+    return [
+        {
+            "id": sheet_id,
+            "label": sheet["label"],
+            "hint": sheet["hint"],
+            "count": len(sheet["slugs"] or []),
+        }
+        for sheet_id, sheet in SHEETS.items()
+    ]
 
 
 @router.get(

@@ -8,11 +8,15 @@ const DEBOUNCE_MS = 180;
 /**
  * Search bar that suggests LeetCode problems as you type.
  *
- * Suggestions are fetched on every keystroke (debounced) and the first result
- * is pre-selected, so Enter picks the top match instead of guessing a slug.
- * Submitting with no results falls back to sending the raw query.
+ * `search(term, signal)` scopes the lookup - pass a practice sheet's own
+ * function to restrict results to that sheet. The first result is pre-selected
+ * so Enter picks the top match instead of guessing a slug. Submitting with no
+ * results falls back to sending the raw query.
  */
-export function createProblemSearch({ form, input, dropdown, onSelect }) {
+export function createProblemSearch({ form, input, dropdown, onSelect, search }) {
+  const lookupSuggestions =
+    search ?? ((term, signal) => api.searchProblems(term, MAX_SUGGESTIONS, null, signal));
+
   let items = [];
   let activeIndex = -1;
   let controller = null;
@@ -89,7 +93,7 @@ export function createProblemSearch({ form, input, dropdown, onSelect }) {
     showStatus("Searching…");
 
     try {
-      const results = await api.searchProblems(term, MAX_SUGGESTIONS, controller.signal);
+      const results = await lookupSuggestions(term, controller.signal);
       if (input.value.trim() !== term) return;
       const rows = Array.isArray(results) ? results : [];
       if (rows.length) render(rows);

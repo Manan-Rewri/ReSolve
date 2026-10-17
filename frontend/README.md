@@ -10,23 +10,32 @@ frontend/
 ├── index.html          landing          /
 ├── register.html                        /register
 ├── login.html                           /login
-├── home.html          analytics         /home
+├── home.html          search            /home
 ├── learn.html         search + runner   /learn
 ├── settings.html                        /settings
 └── assets/
     ├── css/
     │   ├── base.css    design tokens, reset, shared primitives
     │   ├── app.css     app shell + vertical navbar
+    │   ├── search.css  search bar + suggestion dropdown (Home and Learn)
     │   ├── landing.css
     │   ├── auth.css    register + login
     │   ├── home.css
     │   ├── learn.css
     │   └── settings.css
     └── js/
-        ├── core/       api.js · session.js · dom.js · format.js
+        ├── core/       api.js · session.js · dom.js · format.js · sheets.js
         ├── components/ navbar.js · problem-search.js
         └── pages/      one entry module per page
 ```
+
+## Practice sheets
+
+`assets/js/core/sheets.js` is the single place that defines a practice sheet.
+Each entry supplies its own `search(term, signal)`, so Home searches only within
+the selected sheet. Today there is one sheet (`all`); adding another later is a
+single entry plus a matching backend endpoint, with no changes to Home or to
+the search component.
 
 ## Conventions
 

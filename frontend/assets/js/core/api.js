@@ -84,8 +84,10 @@ export const api = {
 
   dashboard: () => request("/dashboard", { auth: true }),
 
-  searchProblems: (term, limit = 8, signal) =>
-    request(`/problems/search${query({ q: term, limit })}`, { signal }),
+  searchProblems: (term, limit = 8, sheet = null, signal) =>
+    request(`/problems/search${query({ q: term, limit, ...(sheet ? { sheet } : {}) })}`, {
+      signal,
+    }),
   fetchLeetCode: (titleOrUrl) =>
     request("/problems/fetch-leetcode", { method: "POST", body: { title_or_url: titleOrUrl } }),
   saveProblem: (payload) => request("/problems", { method: "POST", body: payload, auth: true }),

@@ -9,6 +9,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/assets/css/base.css">
   <link rel="stylesheet" href="/assets/css/app.css">
+  <link rel="stylesheet" href="/assets/css/search.css">
   <link rel="stylesheet" href="/assets/css/learn.css">
 </head>
 <body>
@@ -58,6 +59,10 @@
                 </p>
               </div>
               <div class="pane-body statement" id="statement-body"></div>
+              <div class="examples hidden" id="examples-block">
+                <div class="examples-head">Examples</div>
+                <div id="examples-list"></div>
+              </div>
             </div>
           </section>
 
@@ -71,6 +76,7 @@
             <div class="pane-head" style="border-bottom:0;border-top:1px solid var(--line)">
               <span class="tiny muted" id="run-status"></span>
               <div class="spacer row row-2">
+                <button class="btn btn-sm" id="template-button" type="button">Template</button>
                 <button class="btn btn-sm" id="reset-button" type="button">Clear</button>
                 <button class="btn btn-sm" id="save-button" type="button">Save</button>
                 <button class="btn btn-primary btn-sm" id="run-button" type="button">Run ▸</button>
@@ -96,6 +102,41 @@
       </div>
     </div>
   </div>
+
+  <div class="terminal-backdrop hidden" id="terminal-backdrop">
+    <section class="terminal" role="dialog" aria-modal="true" aria-labelledby="terminal-title">
+      <header class="terminal-head">
+        <h2 id="terminal-title">Run result</h2>
+        <span class="badge hidden" id="terminal-verdict"></span>
+        <button class="btn btn-sm" id="terminal-close" type="button">Close</button>
+      </header>
+
+      <div class="terminal-body">
+        <div class="terminal-block">
+          <div class="terminal-label">Input</div>
+          <pre class="terminal-pre" id="terminal-input"></pre>
+        </div>
+
+        <div class="terminal-block">
+          <div class="terminal-label">Your output</div>
+          <pre class="terminal-pre" id="terminal-output"></pre>
+        </div>
+
+        <div class="terminal-block">
+          <div class="terminal-label">
+            Expected
+            <span class="tiny muted" id="terminal-expected-hint"></span>
+          </div>
+          <textarea class="terminal-expected" id="terminal-expected" spellcheck="false"
+                    placeholder="Paste the expected output to check your answer"></textarea>
+        </div>
+      </div>
+
+      <footer class="terminal-foot" id="terminal-meta"></footer>
+    </section>
+  </div>
+
+  <div class="toast-region" id="toast-region" aria-live="polite"></div>
 
   <script type="module" src="/assets/js/pages/learn.js"></script>
 </body>

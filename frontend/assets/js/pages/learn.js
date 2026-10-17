@@ -2,25 +2,22 @@ import { ApiError, api } from "../core/api.js";
 import { $, setAlert, setBusy, show } from "../core/dom.js";
 import { renderNavbar, escapeHtml } from "../components/navbar.js";
 import { createProblemSearch } from "../components/problem-search.js";
+import { showToast } from "../components/toast.js";
+import { sampleToStdin, templateFor } from "../core/templates.js";
 import { requireAuth, ROUTES } from "../core/session.js";
 
 const user = requireAuth();
 if (user) renderNavbar($("navbar"), ROUTES.learn, user);
 
-const CPP_TEMPLATE = `#include <iostream>
-using namespace std;
+const editor = $("code-editor");
+const languageSelect = $("language-select");
+let editorIsTemplate = true;
 
-int main() {
-    ios::sync_with_stdio(false);
-    cin.tie(nullptr);
-
-    // Read from the "Standard input" panel.
-    int a, b;
-    cin >> a >> b;
-    cout << a + b << "\\n";
-    return 0;
+function applyTemplate() {
+  editor.value = templateFor(languageSelect.value);
+  editorIsTemplate = true;
+  clearRunResult();
 }
-`;
 
 const workspace = $("workspace");
 const emptyState = $("empty-state");
@@ -77,11 +74,63 @@ function renderProblem(problem) {
   $("statement-body").innerHTML =
     problem.content_html || `<p>No statement was returned for this problem.</p>`;
 
-  if (!$("code-editor").value.trim()) {
-    $("code-editor").value = CPP_TEMPLATE;
+  renderExamples(problem.examples || []);
+
+  if (editorIsTemplate || !editor.value.trim()) {
+    applyTemplate();
+  }
+
+  if (!$("stdin-input").value.trim()) {
+    $("stdin-input").value = sampleToStdin(problem.sample_test_case);
   }
 
   clearRunResult();
+}
+
+/**
+ * Shows LeetCode's own examples under the statement. Clicking one loads it into
+ * Standard input and pre-fills the terminal's expected output, which is the
+ * quickest way to try an answer.
+ */
+function renderExamples(examples) {
+  const block = $("examples-block");
+  const list = $("examples-list");
+
+  if (!examples.length) {
+    block.classList.add("hidden");
+    return;
+  }
+
+  list.innerHTML = examples
+    .map(
+      (example, index) => `
+      <button class="example" type="button" data-index="${index}">
+        <span class="example-title">
+          Example ${index + 1}
+          <span class="example-hint">click to use</span>
+        </span>
+        <span class="example-row">
+          <span class="example-key">Input</span>
+          <span class="example-value">${escapeHtml(example.input)}</span>
+        </span>
+        <span class="example-row">
+          <span class="example-key">Output</span>
+          <span class="example-value">${escapeHtml(example.output)}</span>
+        </span>
+      </button>`
+    )
+    .join("");
+
+  list.querySelectorAll(".example").forEach((node) => {
+    node.addEventListener("click", () => {
+      const index = Number(node.dataset.index);
+      $("stdin-input").value = sampleToStdin(examples[index].input);
+      $("terminal-expected").value = examples[index].output || "";
+      showToast($("toast-region"), { message: `Example ${index + 1} loaded` });
+    });
+  });
+
+  block.classList.remove("hidden");
 }
 
 function setTextSafe(element, value) {
@@ -104,6 +153,83 @@ function flagFailure(description) {
   $("output-badge").className = "badge";
   $("output").className = "output-pane output-error";
 }
+
+/**
+ * Splits output into comparable tokens so LeetCode's "[0,1]" and the driver's
+ * plain "0 1" count as the same answer. Brackets, quotes, commas and whitespace
+ * are ignored; ordering still matters.
+ */
+function outputTokens(text) {
+  return String(text || "")
+    .replace(/[[\]{}()"'`,]/g, " ")
+    .split(/\s+/)
+    .map((token) => token.trim())
+    .filter(Boolean);
+}
+
+let lastRun = { actual: "", succeeded: false };
+
+/** The expected answer: whatever the terminal holds, else the problem's Example 1. */
+function expectedForVerdict() {
+  return $("terminal-expected").value.trim() || currentProblem?.sample_expected_output || "";
+}
+
+/** "Failed" | "Ran successfully" | "Correct" | "Incorrect". */
+function verdictFor(actual, succeeded) {
+  if (!succeeded) return "Failed";
+
+  const expected = expectedForVerdict();
+  if (!expected) return "Ran successfully";
+
+  const actualTokens = outputTokens(actual);
+  const expectedTokens = outputTokens(expected);
+  return actualTokens.length === expectedTokens.length &&
+    actualTokens.every((token, index) => token === expectedTokens[index])
+    ? "Correct"
+    : "Incorrect";
+}
+
+function badgeClassFor(verdict) {
+  return verdict === "Correct" || verdict === "Ran successfully"
+    ? "badge badge-outline"
+    : "badge";
+}
+
+function judgeOutput() {
+  const badge = $("terminal-verdict");
+  const verdict = verdictFor(lastRun.actual, lastRun.succeeded);
+  badge.textContent = verdict;
+  badge.className = badgeClassFor(verdict);
+}
+
+function openTerminal({ stdin, output, expected, meta }) {
+  $("terminal-input").textContent = stdin.trim() || "(empty)";
+  $("terminal-output").textContent = output;
+  $("terminal-expected").value = expected || "";
+  $("terminal-expected-hint").textContent = expected
+    ? "from Example 1 — edit if your format differs"
+    : "no expected output found for this problem";
+  $("terminal-meta").textContent = meta;
+
+  judgeOutput();
+  $("terminal-backdrop").classList.remove("hidden");
+  $("terminal-close").focus();
+}
+
+function closeTerminal() {
+  $("terminal-backdrop").classList.add("hidden");
+}
+
+$("terminal-close").addEventListener("click", closeTerminal);
+$("terminal-backdrop").addEventListener("click", (event) => {
+  if (event.target === $("terminal-backdrop")) closeTerminal();
+});
+$("terminal-expected").addEventListener("input", judgeOutput);
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && !$("terminal-backdrop").classList.contains("hidden")) {
+    closeTerminal();
+  }
+});
 
 function buildOutput(result) {
   const parts = [];
@@ -135,12 +261,25 @@ async function runCode() {
       stdin: $("stdin-input").value,
     });
 
-    $("output").textContent = buildOutput(result);
+    const printed = result.stdout ?? "";
+    const succeeded = result.succeeded === true;
+    const verdict = verdictFor(printed, succeeded);
 
-    if (result.succeeded) {
-      $("output-badge").textContent = result.status?.description || "Accepted";
-      $("output-badge").className = "badge badge-outline";
-      $("run-status").textContent = "Ran successfully";
+    // The box shows only what the program printed. Compiler output and stderr
+    // stay in the terminal and the flagged editor so they never pollute it.
+    $("output").textContent = succeeded
+      ? printed || "(the program printed nothing)"
+      : buildOutput(result);
+    $("output").className = `output-pane ${
+      verdict === "Correct" || verdict === "Ran successfully" ? "output-ok" : "output-error"
+    }`;
+
+    $("output-badge").textContent = verdict;
+    $("output-badge").className = badgeClassFor(verdict);
+
+    if (succeeded) {
+      $("editor-pane").classList.remove("pane-flagged");
+      $("run-status").textContent = verdict;
     } else {
       flagFailure(result.status?.description || "Error");
       $("run-status").textContent = "Finished with errors";
@@ -153,10 +292,26 @@ async function runCode() {
       meta.push(`exit ${result.exit_code}`);
     }
     $("run-meta").textContent = meta.join(" · ");
+
+    lastRun = { actual: printed, succeeded };
+    openTerminal({
+      stdin: $("stdin-input").value,
+      output: buildOutput(result),
+      expected: expectedForVerdict(),
+      meta: meta.join(" · "),
+    });
   } catch (error) {
     flagFailure("Request failed");
     $("output").textContent = error.message;
     $("run-status").textContent = "Failed";
+
+    lastRun = { actual: "", succeeded: false };
+    openTerminal({
+      stdin: $("stdin-input").value,
+      output: error.message,
+      expected: expectedForVerdict(),
+      meta: "execution request failed",
+    });
   } finally {
     setBusy($("run-button"), false);
   }
@@ -208,10 +363,11 @@ async function loadLanguages() {
 $("code-editor").addEventListener("keydown", (event) => {
   if (event.key === "Tab") {
     event.preventDefault();
-    const editor = event.currentTarget;
-    const start = editor.selectionStart;
-    editor.value = `${editor.value.slice(0, start)}  ${editor.value.slice(editor.selectionEnd)}`;
-    editor.selectionStart = editor.selectionEnd = start + 2;
+    const target = event.currentTarget;
+    const start = target.selectionStart;
+    target.value = `${target.value.slice(0, start)}  ${target.value.slice(target.selectionEnd)}`;
+    target.selectionStart = target.selectionEnd = start + 2;
+    editorIsTemplate = false;
   }
   if ((event.ctrlKey || event.metaKey) && event.key === "Enter") {
     event.preventDefault();
@@ -219,9 +375,29 @@ $("code-editor").addEventListener("keydown", (event) => {
   }
 });
 
+editor.addEventListener("input", () => {
+  editorIsTemplate = false;
+  if (editor.classList.contains("has-error")) setEditorError(false);
+});
+
+// Choosing a different language swaps in that language's starter code.
+languageSelect.addEventListener("change", applyTemplate);
+
 $("run-button").addEventListener("click", runCode);
 $("save-button").addEventListener("click", saveProblem);
+$("template-button").addEventListener("click", () => {
+  applyTemplate();
+  showToast($("toast-region"), { message: "Starter template restored" });
+});
 $("reset-button").addEventListener("click", resetWorkspace);
 
 resetWorkspace();
+applyTemplate();
 loadLanguages();
+
+// Arriving from Home with ?q=Two%20Sum loads that problem straight away.
+const requestedProblem = new URLSearchParams(window.location.search).get("q");
+if (requestedProblem) {
+  loadProblem(requestedProblem, null);
+  window.history.replaceState({}, "", ROUTES.learn);
+}
