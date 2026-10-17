@@ -197,21 +197,6 @@ export function templateFor(languageId) {
 }
 
 /**
- * Picks the editor's starting code.
- *
- * When the backend could drive this problem's signature it sends LeetCode's own
- * stub plus a generated driver, so the user only writes the method body. Any
- * other language falls back to the generic template, which is runnable but is
- * not the LeetCode shape.
- */
-export function starterFor(problem, languageId) {
-  const generated = problem?.starters?.[languageId];
-  return typeof generated === "string" && generated.trim()
-    ? generated
-    : templateFor(languageId);
-}
-
-/**
  * Converts LeetCode's labelled sample into the raw layout the drivers read,
  * keeping one array/target per line:
  *   "nums = [2,7,11,15]\\nn = 9"  ->  "2 7 11 15\\n9"

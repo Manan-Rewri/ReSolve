@@ -3,7 +3,7 @@ import { $, setAlert, setBusy, show } from "../core/dom.js";
 import { renderNavbar, escapeHtml } from "../components/navbar.js";
 import { createProblemSearch } from "../components/problem-search.js";
 import { showToast } from "../components/toast.js";
-import { sampleToStdin, starterFor } from "../core/templates.js";
+import { sampleToStdin, templateFor } from "../core/templates.js";
 import { requireAuth, ROUTES } from "../core/session.js";
 
 const user = requireAuth();
@@ -14,7 +14,7 @@ const languageSelect = $("language-select");
 let editorIsTemplate = true;
 
 function applyTemplate() {
-  editor.value = starterFor(currentProblem, languageSelect.value);
+  editor.value = templateFor(languageSelect.value);
   editorIsTemplate = true;
   clearRunResult();
 }
@@ -116,10 +116,7 @@ function renderProblem(problem) {
     applyTemplate();
   }
 
-  if (problem.examples?.length) {
-    $("stdin-input").value =
-      problem.examples[0].stdin ?? sampleToStdin(problem.examples[0].input);
-  } else if (!$("stdin-input").value.trim()) {
+  if (!$("stdin-input").value.trim()) {
     $("stdin-input").value = sampleToStdin(problem.sample_test_case);
   }
 
@@ -163,9 +160,7 @@ function renderExamples(examples) {
   list.querySelectorAll(".example").forEach((node) => {
     node.addEventListener("click", () => {
       const index = Number(node.dataset.index);
-      // `stdin` is the backend's signature-aware rendering of the example; the
-      // generic strip is only a fallback because it corrupts string arguments.
-      $("stdin-input").value = examples[index].stdin ?? sampleToStdin(examples[index].input);
+      $("stdin-input").value = sampleToStdin(examples[index].input);
       $("terminal-expected").value = examples[index].output || "";
       showToast($("toast-region"), { message: `Example ${index + 1} loaded` });
     });
@@ -208,16 +203,6 @@ function outputTokens(text) {
     .filter(Boolean);
 }
 
-/**
- * LeetCode writes in-place problems' expected output as
- * "2, nums = [1,2,_]" - the return value, then a note about the mutated array.
- * The driver only returns the value, so the trailing note must be dropped
- * before comparing or a correct answer is reported as Incorrect.
- */
-function returnValueOnly(text) {
-  return String(text || "").split(/\s*,\s*\w+\s*=/)[0];
-}
-
 let lastRun = { actual: "", succeeded: false };
 
 /** The expected answer: whatever the terminal holds, else the problem's Example 1. */
@@ -233,7 +218,7 @@ function verdictFor(actual, succeeded) {
   if (!expected) return "Ran successfully";
 
   const actualTokens = outputTokens(actual);
-  const expectedTokens = outputTokens(returnValueOnly(expected));
+  const expectedTokens = outputTokens(expected);
   return actualTokens.length === expectedTokens.length &&
     actualTokens.every((token, index) => token === expectedTokens[index])
     ? "Correct"

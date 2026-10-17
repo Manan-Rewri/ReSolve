@@ -6,7 +6,6 @@ from fastapi import HTTPException, status
 from app.schemas.leetcode import LeetCodeExample, LeetCodeQuestionData
 from app.services import leetcode_client
 from app.services.sheets import get_slugs
-from app.services.starter import Starter, build_starters, example_to_stdin
 from app.utils.text import html_to_text, to_problem_slug
 
 URL_IN_TEXT_PATTERN = re.compile(r"https?://[^\s]+")
@@ -87,9 +86,6 @@ def _to_question_data(
     content_html = question.get("content") or EMPTY_STATEMENT
     resolved_slug = question.get("titleSlug") or slug
 
-    starters = build_starters(_extract_snippets(question))
-    examples = _build_examples(content_html, starters)
-
     return LeetCodeQuestionData(
         frontend_id=str(question.get("questionFrontendId") or ""),
         title=question.get("title") or fallback_title,
@@ -102,47 +98,9 @@ def _to_question_data(
         content_text=html_to_text(content_html),
         hints=question.get("hints") or [],
         sample_test_case=question.get("sampleTestCase"),
-        sample_expected_output=examples[0].output if examples else None,
-        examples=examples,
-        starters={lang: starter.code for lang, starter in starters.items()},
+        sample_expected_output=extract_expected_output(content_html),
+        examples=[LeetCodeExample(**example) for example in extract_examples(content_html)],
     )
-
-
-def _extract_snippets(question: Dict[str, Any]) -> Dict[str, str]:
-    """Collapses LeetCode's codeSnippets list into {langSlug: code}."""
-    snippets = question.get("codeSnippets") or []
-    return {
-        snippet["langSlug"]: snippet["code"]
-        for snippet in snippets
-        if isinstance(snippet, dict) and snippet.get("langSlug") and snippet.get("code")
-    }
-
-
-def _build_examples(
-    content_html: str, starters: Dict[str, Starter]
-) -> List[LeetCodeExample]:
-    """Pairs each parsed example with the Standard input its driver expects.
-
-    The signatures of every language agree, so the first usable one decides the
-    layout. Without it the frontend's generic strip would destroy string
-    arguments such as s = "()[]{}".
-    """
-    examples = [
-        LeetCodeExample(**example) for example in extract_examples(content_html)
-    ]
-    if not examples:
-        return []
-
-    for starter in starters.values():
-        typed = []
-        for example in examples:
-            stdin = example_to_stdin(example.input, starter.signature)
-            if stdin is None:
-                break
-            typed.append(example.model_copy(update={"stdin": stdin}))
-        if len(typed) == len(examples):
-            return typed
-    return examples
 
 
 def _to_suggestion(row: Dict[str, Any]) -> Dict[str, Any]:
