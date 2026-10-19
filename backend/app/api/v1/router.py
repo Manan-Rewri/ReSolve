@@ -1,0 +1,8 @@
+from fastapi import APIRouter
+
+from app.api.v1 import compiler, health, problems
+
+api_router = APIRouter()
+api_router.include_router(health.router)
+api_router.include_router(compiler.router)
+api_router.include_router(problems.router)

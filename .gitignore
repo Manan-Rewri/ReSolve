@@ -1,0 +1,40 @@
+# Dependencies
+node_modules/
+dist/
+dist-ssr/
+*.local
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Editors / OS
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
+
+# Env
+# These patterns have no slash, so they match at any depth: backend/.env holds
+# the NVIDIA key and frontend/.env holds the Supabase anon key. Never commit
+# either.
+.env
+.env.local
+.env.*.local
+
+# Build output
+build/
+coverage/
