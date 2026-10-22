@@ -1,0 +1,2692 @@
+@import 'tailwindcss';
+
+/* ------------------------------------------------------------------
+   ReSolve design tokens
+   Brand: Space Grotesk, monochrome, dark-first, no accent colours.
+   Light mode is intentionally deferred; tokens are structured so a
+   `@theme` override block is all that would be needed later.
+------------------------------------------------------------------- */
+@theme {
+  --font-sans:
+    'Space Grotesk', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono:
+    'JetBrains Mono', ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
+
+  /* Surfaces, darkest to lightest */
+  --color-background: #000000;
+  --color-foreground: #ffffff;
+
+  --color-card: #0a0a0a;
+  --color-card-foreground: #ffffff;
+
+  --color-muted: #171717;
+  --color-muted-foreground: #b8b8b8;
+
+  --color-subtle: #262626;
+  --color-subtle-foreground: #717171;
+
+  /* Lines */
+  --color-border: #242424;
+  --color-line: #2b2b2b;
+  --color-line-hover: #5e5e5e;
+  --color-input: #1f1f1f;
+  --color-ring: #ffffff;
+
+  /* Interaction states */
+  --color-hover: #dcdcdc;
+  --color-dot: #4a4a4a;
+
+  /* Verdict states. These are the only hues in the product, and they are
+     earned: a thing is green when it passed and red when it failed. Nothing
+     decorative is ever coloured. Desaturated toward the brand's greys so they
+     sit beside Space Grotesk instead of vibrating against pure black. */
+  --color-success: #4cc38a;
+  --color-danger: #f2555a;
+  /* Tints for shading a row, not for text. */
+  --color-success-soft: #0d1f16;
+  --color-danger-soft: #2a1013;
+
+  /* Glass — the only "material" treatment in an otherwise flat UI.
+     Alpha layers of the foreground colour, never a hue. */
+  --color-glass-fill: rgb(255 255 255 / 0.06);
+  --color-glass-fill-hover: rgb(255 255 255 / 0.12);
+  --color-glass-border: rgb(255 255 255 / 0.16);
+  --color-glass-border-hover: rgb(255 255 255 / 0.28);
+  --color-glass-highlight: rgb(255 255 255 / 0.14);
+  --blur-glass: 14px;
+
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+
+  --tracking-tight: -0.02em;
+  --tracking-tighter: -0.04em;
+}
+
+@layer base {
+  *,
+  ::after,
+  ::before {
+    border-color: var(--color-border);
+  }
+
+  html {
+    color-scheme: dark;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    margin: 0;
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    font-synthesis-weight: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  /* Keyboard-first product: always show focus, never hide it. */
+  :focus-visible {
+    outline: 2px solid var(--color-ring);
+    outline-offset: 3px;
+  }
+
+  ::selection {
+    background-color: var(--color-foreground);
+    color: var(--color-background);
+  }
+}
+
+/* ==================================================================
+   Buttons
+   Sharp corners, 1px borders, no radii, no shadows. Inversion is the
+   only emphasis tool we have — there are no colours.
+================================================================== */
+
+.button {
+  min-height: 48px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 0 20px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  white-space: nowrap;
+  font-size: 14px;
+  font-weight: 500;
+  transition:
+    background 160ms ease,
+    color 160ms ease,
+    border-color 160ms ease,
+    transform 160ms ease;
+}
+
+.button:hover svg {
+  transform: translateX(3px);
+}
+
+.button:active {
+  transform: scale(0.98);
+}
+
+.button-small {
+  min-height: 40px;
+  padding: 0 16px;
+}
+
+.button-light {
+  color: var(--color-background);
+  background: var(--color-foreground);
+}
+
+.button-light:hover {
+  background: var(--color-hover);
+}
+
+
+.button-ghost {
+  color: var(--color-muted-foreground);
+  border-color: var(--color-line);
+  background: transparent;
+}
+
+.button-ghost:hover {
+  color: var(--color-foreground);
+  border-color: var(--color-line-hover);
+}
+
+/* Frosted panel: translucent fill, blurred backdrop, hairline top highlight.
+   Sits over the animated canvas, so the garden shows softly through it. */
+.button-glass {
+  color: var(--color-foreground);
+  border-color: var(--color-glass-border);
+  background: var(--color-glass-fill);
+  backdrop-filter: blur(var(--blur-glass)) saturate(120%);
+  -webkit-backdrop-filter: blur(var(--blur-glass)) saturate(120%);
+  box-shadow: inset 0 1px 0 var(--color-glass-highlight);
+}
+
+.button-glass:hover {
+  background: var(--color-glass-fill-hover);
+  border-color: var(--color-glass-border-hover);
+}
+
+/* Fallback for engines without backdrop-filter: go solid so text stays legible. */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .button-glass {
+    background: var(--color-muted);
+  }
+}
+
+/* ==================================================================
+   Landing page
+   Full-bleed garden canvas with the two calls to action anchored to
+   wherever the engine reports the wordmark baseline.
+================================================================== */
+
+.landing {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background: var(--color-background);
+}
+
+.landing-garden {
+  position: absolute;
+  inset: 0;
+}
+
+.landing-cta {
+  position: absolute;
+  z-index: 5;
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 24px;
+  /* `top` is written each frame by TypeGarden. */
+}
+
+/* One hairline. It divides the mark from the action — a single rule, because
+   a second one would tip the page into broadsheet. */
+.landing-rule {
+  width: 56px;
+  height: 1px;
+  margin-bottom: 22px;
+  background: var(--color-border);
+}
+
+.landing-lede {
+  max-width: 34ch;
+  margin: 0;
+  color: var(--color-muted-foreground);
+  font-size: 16px;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  line-height: 1.55;
+  text-align: center;
+  text-wrap: balance;
+}
+
+.landing-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 28px;
+}
+
+/* Revealed once the garden has finished typing the wordmark. */
+.reveal {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.reveal.is-on {
+  animation: rise-in 600ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  pointer-events: auto;
+}
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 620px) {
+  .landing-cta {
+    padding: 0 20px;
+  }
+
+  .landing-lede {
+    font-size: 15px;
+  }
+
+  .landing-actions {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .landing-actions .button {
+    width: 100%;
+    max-width: 340px;
+  }
+}
+
+/* Landscape phones: keep the calls to action clear of the wordmark. */
+@media (max-height: 480px) {
+  .landing-rule {
+    margin-bottom: 14px;
+  }
+
+  .landing-lede {
+    font-size: 14px;
+  }
+
+  .landing-actions {
+    gap: 8px;
+    margin-top: 18px;
+  }
+
+  .landing-actions .button {
+    min-height: 42px;
+    font-size: 13px;
+  }
+}
+
+/* ==================================================================
+   Auth — /register and /login
+   One question at a time on register. The field is oversized on purpose:
+   the input is the page, not a control inside a form.
+================================================================== */
+
+.auth {
+  /* Fixed height, not min-height: min-height lets the box grow past the
+     viewport when content is tall, which is what produced the scroll.
+     `overflow-y: auto` is only a safety valve for very short screens —
+     in practice the clamps below keep it from ever being needed. */
+  height: 100svh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: clamp(24px, 5vh, 48px) 24px;
+}
+
+.auth-shell {
+  width: min(100%, 480px);
+  margin: auto;
+  animation: panel-in 600ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.auth-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: clamp(20px, 6vh, 62px);
+}
+
+.auth-wordmark {
+  font-size: clamp(15px, 2.4vh, 18px);
+  font-weight: 600;
+  letter-spacing: -0.04em;
+  transition: letter-spacing 200ms ease;
+}
+
+.auth-wordmark:hover {
+  letter-spacing: 0;
+}
+
+/* Step indicator. Legitimate here because the content genuinely is a
+   sequence — four questions in a fixed order. */
+.auth-progress {
+  display: flex;
+  gap: 6px;
+}
+
+.auth-progress span {
+  width: 26px;
+  height: 3px;
+  background: var(--color-border);
+  transition: background 320ms ease;
+}
+
+.auth-progress span.is-active {
+  background: var(--color-foreground);
+}
+
+.auth-question {
+  margin: 0;
+  font-size: clamp(23px, 4.6vh, 34px);
+  font-weight: 500;
+  letter-spacing: -0.045em;
+  line-height: 1.1;
+  text-wrap: balance;
+}
+
+.auth-hint {
+  margin: clamp(6px, 1.4vh, 12px) 0 0;
+  color: var(--color-subtle-foreground);
+  font-size: clamp(12px, 1.9vh, 14px);
+  line-height: 1.55;
+}
+
+/* Sits slightly off pure black so the field has a visible edge. The one
+   place we allow a tinted near-black, because it is affordance, not
+   decoration. The border belongs to the row, not the input, so the reveal
+   button sits inside the field rather than floating beside it. */
+.auth-field-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: clamp(14px, 3.6vh, 30px);
+  height: clamp(48px, 9.4vh, 72px);
+  padding: 0 20px;
+  color: var(--color-foreground);
+  border: 1px solid var(--color-line);
+  border-radius: 0;
+  background: var(--color-card);
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+/* Room for the reveal button, which lives inside the field. */
+.auth-field-box.has-reveal {
+  padding-right: 6px;
+}
+
+.auth-field input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  padding: 0;
+  color: var(--color-foreground);
+  border: 0;
+  background: transparent;
+  outline: none;
+  font-size: clamp(16px, 2.5vh, 19px);
+  font-weight: 400;
+  letter-spacing: -0.01em;
+}
+
+.auth-field input::placeholder {
+  color: var(--color-subtle-foreground);
+}
+
+/* Focus reads as a solid bar appearing on the left edge. */
+.auth-field-box:focus-within {
+  border-color: var(--color-foreground);
+  box-shadow: inset 3px 0 0 var(--color-foreground);
+}
+
+/* A field the user has to fix. */
+.auth-field-box.has-error {
+  border-color: var(--color-danger);
+}
+
+.auth-field-box.has-error:focus-within {
+  box-shadow: inset 3px 0 0 var(--color-danger);
+}
+
+.auth-field-reveal {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  color: var(--color-subtle-foreground);
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  cursor: pointer;
+  transition: color 160ms ease;
+}
+
+.auth-field-reveal:hover {
+  color: var(--color-foreground);
+}
+
+.auth-field-reveal:focus-visible {
+  outline: 1px solid var(--color-foreground);
+  outline-offset: -3px;
+}
+
+.auth-field-eye {
+  width: 20px;
+  height: 20px;
+  display: block;
+}
+
+.auth-fields .auth-field + .auth-field .auth-field-box {
+  margin-top: 12px;
+}
+
+/* Reserved so showing an error never shifts the layout mid-step. */
+.auth-slot {
+  min-height: clamp(24px, 4.4vh, 38px);
+}
+
+.auth-error {
+  margin: clamp(8px, 1.6vh, 14px) 0 0;
+  color: var(--color-danger);
+  font-size: 13px;
+  font-weight: 500;
+  animation: panel-in 240ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.auth-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: clamp(12px, 2.8vh, 22px);
+}
+
+.auth-actions .button-light {
+  flex: 1;
+}
+
+.auth-foot {
+  margin-top: clamp(18px, 4.6vh, 38px);
+  animation: panel-in 600ms 120ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.auth-google {
+  width: 100%;
+  min-height: clamp(44px, 6.6vh, 48px);
+}
+
+.google-mark {
+  width: 17px;
+  height: 17px;
+  flex: none;
+}
+
+.auth-notice {
+  margin: 0 0 18px;
+  padding: 14px 16px;
+  color: var(--color-success);
+  border: 1px solid var(--color-success-soft);
+  background: var(--color-success-soft);
+  font-size: 13px;
+  line-height: 1.55;
+  animation: panel-in 300ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.auth-switch {
+  margin: 24px 0 0;
+  color: var(--color-subtle-foreground);
+  text-align: center;
+  font-size: 13px;
+}
+
+.auth-switch a {
+  color: var(--color-foreground);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+/* Direction-aware entrance: the panel arrives from the way you travelled. */
+.auth-panel {
+  animation: panel-in 340ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.auth-panel[data-travel='-1'] {
+  animation-name: panel-in-reverse;
+}
+
+@keyframes panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes panel-in-reverse {
+  from {
+    opacity: 0;
+    transform: translateY(-14px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (max-width: 620px) {
+  .auth {
+    padding-inline: 20px;
+  }
+
+  /* Column-reverse keeps the primary action on top under the thumb. */
+  .auth-actions {
+    flex-direction: column-reverse;
+  }
+
+  .auth-actions .button {
+    width: 100%;
+  }
+}
+
+/* Landscape phones and short windows. The clamps above handle most of it;
+   below this we drop the supporting line entirely so the form still fits
+   above the fold without scrolling. */
+@media (max-height: 560px) {
+  .auth-hint {
+    display: none;
+  }
+}
+
+@media (max-height: 430px) {
+  .auth {
+    padding-block: 16px;
+  }
+
+  .auth-head {
+    margin-bottom: 14px;
+  }
+
+  .auth-question {
+    font-size: 20px;
+  }
+
+  .auth-field-box {
+    height: 46px;
+    margin-top: 14px;
+  }
+
+  .auth-field input {
+    font-size: 15px;
+  }
+
+  .auth-slot {
+    min-height: 22px;
+  }
+
+  .auth-actions,
+  .auth-foot {
+    margin-top: 12px;
+  }
+
+  .auth-actions .button,
+  .auth-google {
+    min-height: 40px;
+    font-size: 13px;
+  }
+
+  .auth-switch {
+    margin-top: 10px;
+    font-size: 12px;
+  }
+}
+
+/* ==================================================================
+   App shell — topbar + drawer. Everything under /home.
+================================================================== */
+
+.app-shell {
+  min-height: 100svh;
+  color: var(--color-foreground);
+  background: var(--color-background);
+}
+
+.app-topbar {
+  position: fixed;
+  z-index: 20;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 64px;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  padding: 0 20px;
+  border-bottom: 1px solid var(--color-border);
+  background: rgb(0 0 0 / 0.82);
+  backdrop-filter: blur(var(--blur-glass));
+  -webkit-backdrop-filter: blur(var(--blur-glass));
+}
+
+/* A failed load or write is visible, never rendered as an empty sheet. */
+.app-notice {
+  margin: 0 0 20px;
+  padding: 11px 14px;
+  border: 1px solid var(--color-danger);
+  background: var(--color-danger-soft);
+  color: var(--color-danger);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.app-page.is-full .app-notice {
+  margin: 0;
+}
+
+.app-menu-button {
+  justify-self: start;
+  width: 38px;
+  height: 38px;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 4px;
+  padding: 0;
+  color: var(--color-muted-foreground);
+  cursor: pointer;
+  border: 1px solid var(--color-line);
+  background: transparent;
+  transition:
+    color 160ms ease,
+    background 160ms ease,
+    border-color 160ms ease;
+}
+
+.app-menu-button span {
+  display: block;
+  width: 16px;
+  height: 1.5px;
+  background: currentColor;
+}
+
+.app-menu-button:hover {
+  color: var(--color-foreground);
+  background: var(--color-muted);
+  border-color: var(--color-line-hover);
+}
+
+.app-page-title {
+  grid-column: 2;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.app-backdrop {
+  position: fixed;
+  z-index: 30;
+  inset: 0;
+  visibility: hidden;
+  opacity: 0;
+  cursor: default;
+  padding: 0;
+  border: 0;
+  background: rgb(0 0 0 / 0.66);
+  transition:
+    opacity 220ms ease,
+    visibility 220ms ease;
+}
+
+.app-backdrop.is-visible {
+  visibility: visible;
+  opacity: 1;
+}
+
+.app-sidebar {
+  position: fixed;
+  z-index: 40;
+  top: 0;
+  left: 0;
+  width: min(360px, calc(100vw - 28px));
+  height: 100svh;
+  display: flex;
+  flex-direction: column;
+  padding: 26px 20px 20px;
+  border-right: 1px solid var(--color-line);
+  background: var(--color-background);
+  transform: translateX(-101%);
+  transition: transform 260ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.app-sidebar.is-open {
+  transform: translateX(0);
+}
+
+.sidebar-top {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding: 0 8px 24px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.sidebar-top span {
+  color: var(--color-subtle-foreground);
+  font-size: 12px;
+}
+
+.sidebar-top strong {
+  overflow: hidden;
+  font-size: 22px;
+  font-weight: 500;
+  letter-spacing: -0.04em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sidebar-navigation {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 22px 0;
+}
+
+.sidebar-link {
+  min-height: 46px;
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  color: var(--color-muted-foreground);
+  cursor: pointer;
+  border: 1px solid transparent;
+  background: transparent;
+  font-size: 14px;
+  text-align: left;
+  transition:
+    color 160ms ease,
+    border-color 160ms ease,
+    background 160ms ease;
+}
+
+.sidebar-link:hover {
+  color: var(--color-foreground);
+  background: var(--color-muted);
+}
+
+.sidebar-link.is-active {
+  color: var(--color-foreground);
+  border-color: var(--color-line);
+  background: var(--color-muted);
+}
+
+.sidebar-profile {
+  margin-top: auto;
+  padding: 16px 8px 0;
+  border-top: 1px solid var(--color-border);
+}
+
+.profile-identity {
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr);
+  align-items: center;
+  gap: 11px;
+}
+
+.profile-avatar {
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  color: var(--color-background);
+  background: var(--color-foreground);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* Square, not round — matches the zero-radius rule in AGENTS.md §6. */
+.profile-avatar img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+.profile-copy {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.profile-copy strong,
+.profile-copy span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.profile-copy strong {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.profile-copy span {
+  color: var(--color-subtle-foreground);
+  font-size: 11px;
+}
+
+.profile-logout {
+  width: 100%;
+  min-height: 42px;
+  display: flex;
+  align-items: center;
+  margin-top: 14px;
+  padding: 0 12px;
+  color: var(--color-muted-foreground);
+  cursor: pointer;
+  border: 1px solid var(--color-line);
+  background: transparent;
+  font-size: 13px;
+  transition:
+    color 160ms ease,
+    background 160ms ease,
+    border-color 160ms ease;
+}
+
+.profile-logout:hover {
+  color: var(--color-foreground);
+  background: var(--color-muted);
+  border-color: var(--color-line-hover);
+}
+
+.app-page {
+  min-height: 100svh;
+  padding-top: 64px;
+}
+
+.app-page-inner {
+  width: min(760px, calc(100% - 40px));
+  margin: 0 auto;
+  padding: 48px 0 80px;
+}
+
+.app-view-title {
+  margin: 0;
+  font-size: clamp(28px, 5vh, 40px);
+  font-weight: 500;
+  letter-spacing: -0.05em;
+  line-height: 1.1;
+}
+
+.app-view-blurb {
+  margin: 14px 0 0;
+  color: var(--color-subtle-foreground);
+  font-size: 15px;
+  line-height: 1.55;
+}
+
+
+@media (max-width: 620px) {
+  .app-topbar {
+    padding: 0 14px;
+  }
+
+  .app-page-inner {
+    width: calc(100% - 32px);
+    padding: 34px 0 60px;
+  }
+}
+
+
+/* Flush pages own the whole viewport: no page scroll, content scrolls itself. */
+.app-page.is-full {
+  height: 100svh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-page.is-full .app-page-inner {
+  flex: 1;
+  /* Without this a flex child refuses to shrink below its content height,
+     which is what reintroduces the scrollbar. */
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  width: min(1180px, calc(100% - 48px));
+  padding: 24px 0;
+}
+
+/* ==================================================================
+   Compiler — C++ via Judge0.
+   Two equal columns. Left is the editor, right is input over output.
+   Everything fits the viewport; only the panes scroll internally.
+================================================================== */
+
+.compiler {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1px;
+  border: 1px solid var(--color-border);
+  background: var(--color-border);
+}
+
+.compiler-side {
+  min-height: 0;
+  display: grid;
+  grid-template-rows: 1fr 1fr;
+  gap: 1px;
+  background: var(--color-border);
+}
+
+.compiler-pane {
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-background);
+}
+
+.compiler-pane-head {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.compiler-pane-body {
+  flex: 1;
+  min-height: 0;
+}
+
+.compiler-label {
+  color: var(--color-subtle-foreground);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+}
+
+.compiler-head-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Fills its pane and scrolls internally instead of the page. */
+.compiler-fill {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  margin: 0;
+  padding: 14px 16px;
+  resize: none;
+  color: var(--color-foreground);
+  border: 0;
+  border-radius: 0;
+  background: var(--color-card);
+  outline: none;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.65;
+  tab-size: 4;
+}
+
+.compiler-scroll {
+  overflow: auto;
+}
+
+.compiler-fill:focus {
+  box-shadow: inset 3px 0 0 var(--color-foreground);
+}
+
+.compiler-output {
+  margin: 0;
+  color: var(--color-muted-foreground);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.65;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* The compiler's own complaint. It is the only red text in the product. */
+.compiler-output.is-error {
+  color: var(--color-danger);
+}
+
+.compiler-empty {
+  margin: 0;
+  color: var(--color-subtle-foreground);
+  font-size: 13px;
+}
+
+.compiler-loading {
+  display: grid;
+  place-items: center;
+  color: var(--color-subtle-foreground);
+  font-size: 13px;
+}
+
+.compiler-status {
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* The verdict. Colour carries it, and the word beside it carries it too, so
+   it survives colour blindness and a greyscale screenshot. */
+.compiler-status.is-ok {
+  color: var(--color-success);
+}
+
+.compiler-status.is-bad {
+  color: var(--color-danger);
+}
+
+.compiler-error {
+  margin: 0;
+  color: var(--color-danger);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.compiler-meta {
+  margin: 14px 0 0;
+  color: var(--color-subtle-foreground);
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+
+/* Generated test cases: input, expected, and what the code actually produced. */
+.case-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  table-layout: fixed;
+}
+
+.case-table th {
+  position: sticky;
+  top: 0;
+  padding: 0 10px 8px 0;
+  background: var(--color-card);
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-subtle-foreground);
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 500;
+  text-align: left;
+}
+
+.case-table td {
+  padding: 7px 10px 7px 0;
+  border-bottom: 1px solid var(--color-border);
+  vertical-align: top;
+  word-break: break-word;
+}
+
+.case-col-n {
+  width: 28px;
+  color: var(--color-subtle-foreground);
+  text-align: right;
+}
+
+.case-col-in,
+.case-col-out {
+  width: 30%;
+  color: var(--color-muted-foreground);
+}
+
+/* A row that agreed with the expected answer, and one that did not. The
+   colour is on the value itself, where the eye goes first, and the row is
+   shaded so a failure can be found by scanning down the column. */
+.case-col-ok {
+  color: var(--color-success);
+}
+
+.case-col-bad {
+  color: var(--color-danger);
+}
+
+.case-row-bad td {
+  background: var(--color-danger-soft);
+}
+
+.case-row-bad .case-col-n {
+  color: var(--color-danger);
+}
+
+.case-row-bad .case-col-in,
+.case-row-bad .case-col-out {
+  color: var(--color-muted-foreground);
+}
+
+.case-none {
+  color: var(--color-subtle-foreground);
+  font-style: italic;
+}
+
+/* The worked examples and the constraints, under the statement. */
+.pv-block {
+  margin-top: 26px;
+}
+
+.pv-block-title {
+  margin: 0 0 10px;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+.pv-example {
+  padding: 10px 12px;
+  border: 1px solid var(--color-border);
+  background: var(--color-card);
+}
+
+.pv-example + .pv-example {
+  margin-top: 8px;
+}
+
+.pv-example-io {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.pv-example-io + .pv-example-io {
+  margin-top: 4px;
+}
+
+.pv-example-label {
+  display: inline-block;
+  width: 54px;
+  color: var(--color-subtle-foreground);
+  font-size: 12px;
+}
+
+.pv-example code {
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  color: var(--color-foreground);
+  word-break: break-word;
+}
+
+.pv-constraints {
+  margin: 0;
+  padding-left: 18px;
+  color: var(--color-muted-foreground);
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+/* The note under a problem screen, after a rating. */
+.pv-notice {
+  position: fixed;
+  left: 50%;
+  bottom: 26px;
+  transform: translateX(-50%);
+  z-index: 30;
+  margin: 0;
+  padding: 11px 18px;
+  color: var(--color-foreground);
+  border: 1px solid var(--color-line);
+  background: var(--color-card);
+  font-size: 13px;
+  animation: panel-in 220ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* --------------------------------------------------------------- rating */
+
+/* The popup that asks how the attempt felt. */
+.rating-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgb(0 0 0 / 0.72);
+  backdrop-filter: blur(6px);
+  animation: fade-in 160ms ease both;
+}
+
+.rating-panel {
+  width: min(460px, 100%);
+  padding: 26px 26px 22px;
+  border: 1px solid var(--color-line);
+  background: var(--color-card);
+  animation: panel-in 240ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.rating-title {
+  margin: 0 0 18px;
+  font-size: 19px;
+  font-weight: 500;
+  letter-spacing: -0.03em;
+}
+
+.rating-options {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rating-option {
+  display: block;
+  width: 100%;
+  padding: 12px 14px;
+  text-align: left;
+  color: var(--color-foreground);
+  border: 1px solid var(--color-line);
+  background: transparent;
+  cursor: pointer;
+  transition:
+    background 140ms ease,
+    border-color 140ms ease;
+}
+
+.rating-options li + li .rating-option {
+  margin-top: 8px;
+}
+
+.rating-option:hover {
+  border-color: var(--color-foreground);
+  background: var(--color-muted);
+}
+
+.rating-option:focus-visible {
+  outline: 1px solid var(--color-foreground);
+  outline-offset: 1px;
+}
+
+.rating-option-label {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.rating-option-hint {
+  display: block;
+  margin-top: 2px;
+  color: var(--color-subtle-foreground);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+/* ------------------------------------------------------------- practice */
+
+.practice {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
+}
+
+.practice-bar {
+  flex: none;
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  padding: 0 0 10px;
+}
+
+.practice-count {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.practice-count-quiet {
+  color: var(--color-subtle-foreground);
+  font-weight: 400;
+}
+
+.practice-empty {
+  flex: 1;
+  display: grid;
+  align-content: center;
+  justify-items: start;
+  gap: 6px;
+  padding: 0 clamp(20px, 6vw, 60px);
+}
+
+.practice-empty-title {
+  margin: 0;
+  font-size: 19px;
+  font-weight: 500;
+  letter-spacing: -0.03em;
+}
+
+.practice-empty-note {
+  margin: 0;
+  color: var(--color-subtle-foreground);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+/* Below this the two columns stop being useful side by side. */
+@media (max-width: 900px) {
+  .app-page.is-full {
+    height: auto;
+    min-height: 100svh;
+    overflow: visible;
+  }
+
+  .app-page.is-full .app-page-inner {
+    width: calc(100% - 32px);
+    padding: 18px 0 40px;
+  }
+
+
+  .compiler {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .compiler-side {
+    grid-template-rows: auto auto;
+  }
+
+  .compiler-pane-body,
+  .compiler-side .compiler-pane {
+    min-height: 260px;
+  }
+}
+
+/* ==================================================================
+   LeetCode view — search over the local catalogue
+================================================================== */
+
+.lc {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.lc-search {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.lc-search-input {
+  flex: 1;
+  min-width: 0;
+  height: 52px;
+  padding: 0 16px;
+  color: var(--color-foreground);
+  border: 1px solid var(--color-line);
+  border-radius: 0;
+  background: var(--color-card);
+  outline: none;
+  font-size: 16px;
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.lc-search-input::placeholder {
+  color: var(--color-subtle-foreground);
+}
+
+.lc-search-input:focus {
+  border-color: var(--color-foreground);
+  box-shadow: inset 3px 0 0 var(--color-foreground);
+}
+
+.lc-search-count {
+  flex: none;
+  color: var(--color-subtle-foreground);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.lc-list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--color-border);
+}
+
+.lc-row {
+  width: 100%;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 12px;
+  color: var(--color-foreground);
+  cursor: pointer;
+  border: 0;
+  border-bottom: 1px solid var(--color-border);
+  background: transparent;
+  text-align: left;
+  transition: background 140ms ease;
+}
+
+.lc-row:hover {
+  background: var(--color-muted);
+}
+
+/* The sheets, and how far through each one the user is. */
+.sheet-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sheet-row {
+  display: block;
+  width: 100%;
+  padding: 16px 12px 18px;
+  text-align: left;
+  color: var(--color-foreground);
+  border: 0;
+  border-bottom: 1px solid var(--color-border);
+  background: transparent;
+  cursor: pointer;
+  transition: background 140ms ease;
+}
+
+.sheet-row:hover {
+  background: var(--color-muted);
+}
+
+.sheet-row:focus-visible {
+  outline: 1px solid var(--color-foreground);
+  outline-offset: -1px;
+}
+
+.sheet-row-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.sheet-row-name {
+  font-size: 16px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+
+.sheet-row-count {
+  flex: none;
+  color: var(--color-subtle-foreground);
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+.sheet-row-blurb {
+  display: block;
+  margin-top: 4px;
+  color: var(--color-subtle-foreground);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+/* Progress. A hairline track with a solid fill, no radius, no gradient. */
+.sheet-bar {
+  display: block;
+  height: 3px;
+  margin-top: 14px;
+  background: var(--color-border);
+}
+
+.sheet-bar-fill {
+  display: block;
+  height: 100%;
+  background: var(--color-foreground);
+  transition: width 320ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* The number a problem has in its sheet. */
+.lc-list-ordered {
+  list-style: none;
+}
+
+.lc-row-n {
+  flex: none;
+  width: 26px;
+  color: var(--color-subtle-foreground);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  text-align: right;
+}
+
+/* Back to the sheets. */
+.lc-back {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 14px 0 0;
+  color: var(--color-muted-foreground);
+  border: 0;
+  background: transparent;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.lc-back:hover {
+  color: var(--color-foreground);
+}
+
+/* The name of the open sheet, so the list has a heading and not just a count. */
+.lc-sheet-name {
+  flex: none;
+  max-width: 190px;
+  overflow: hidden;
+  padding-left: 14px;
+  border-left: 1px solid var(--color-border);
+  color: var(--color-foreground);
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* The filter row under the search bar. */
+.lc-filters {
+  flex: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 20px;
+  padding: 12px 0 4px;
+}
+
+.lc-filter-group {
+  display: flex;
+  gap: 4px;
+}
+
+.lc-filter {
+  padding: 5px 10px;
+  color: var(--color-subtle-foreground);
+  border: 1px solid transparent;
+  background: transparent;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  border-radius: 0;
+  cursor: pointer;
+  transition:
+    color 140ms ease,
+    border-color 140ms ease;
+}
+
+.lc-filter:hover {
+  color: var(--color-foreground);
+}
+
+.lc-filter.is-on {
+  color: var(--color-foreground);
+  border-color: var(--color-line);
+}
+
+.lc-filter:focus-visible {
+  outline: 1px solid var(--color-foreground);
+  outline-offset: 1px;
+}
+
+/* The title and its tick share the first column, so the row keeps three
+   columns and the difficulty never wraps. */
+.lc-row-name {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+}
+
+.lc-row-title {
+  overflow: hidden;
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: -0.015em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* The tick on a problem the user has already got right. */
+.lc-row-done {
+  flex: none;
+  color: var(--color-success);
+  font-size: 13px;
+  line-height: 1;
+}
+
+.lc-row-tags {
+  color: var(--color-subtle-foreground);
+  font-size: 12px;
+}
+
+.lc-row-diff {
+  min-width: 62px;
+  font-size: 12px;
+  text-align: right;
+}
+
+/* Difficulty by weight and emphasis, never by hue. */
+.lc-row-diff[data-difficulty='Hard'] {
+  color: var(--color-foreground);
+  font-weight: 600;
+}
+
+.lc-row-diff[data-difficulty='Medium'] {
+  color: var(--color-muted-foreground);
+  font-weight: 500;
+}
+
+.lc-row-diff[data-difficulty='Easy'] {
+  color: var(--color-subtle-foreground);
+}
+
+.lc-empty {
+  color: var(--color-subtle-foreground);
+  font-size: 14px;
+}
+
+/* ==================================================================
+   Problem screen — statement left, editor / input / output right
+================================================================== */
+
+.pv {
+  height: 100svh;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1px;
+  background: var(--color-border);
+}
+
+.pv-side {
+  min-height: 0;
+  display: grid;
+  /* The editor gets the room it needs; the test cases sit under it. */
+  grid-template-rows: minmax(0, 3fr) minmax(0, 2fr);
+  gap: 1px;
+  background: var(--color-border);
+}
+
+.pv-pane {
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-background);
+}
+
+/* The statement is the left column of the problem view. */
+.pv-statement {
+  min-height: 0;
+}
+
+.pv-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 20px 24px 40px;
+}
+
+.pv-back {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  color: var(--color-muted-foreground);
+  cursor: pointer;
+  border: 0;
+  background: transparent;
+  font-size: 12px;
+  transition: color 140ms ease;
+}
+
+.pv-back:hover {
+  color: var(--color-foreground);
+}
+
+.pv-title {
+  flex: 1;
+  overflow: hidden;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: -0.015em;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pv-meta {
+  margin-bottom: 18px;
+  padding-bottom: 14px;
+  color: var(--color-subtle-foreground);
+  border-bottom: 1px solid var(--color-border);
+  font-size: 12px;
+}
+
+/* --- markdown ------------------------------------------------------ */
+
+.md {
+  color: var(--color-muted-foreground);
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.md p {
+  margin: 0 0 14px;
+}
+
+.md h3,
+.md h4,
+.md h5,
+.md h6 {
+  margin: 22px 0 10px;
+  color: var(--color-foreground);
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+}
+
+.md h3 {
+  font-size: 18px;
+}
+
+.md h4 {
+  font-size: 16px;
+}
+
+.md ul {
+  margin: 0 0 14px;
+  padding-left: 20px;
+}
+
+.md li {
+  margin-bottom: 6px;
+}
+
+.md strong {
+  color: var(--color-foreground);
+  font-weight: 500;
+}
+
+.md-code {
+  padding: 1px 5px;
+  color: var(--color-foreground);
+  border: 1px solid var(--color-border);
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+}
+
+.md-pre {
+  margin: 0 0 16px;
+  padding: 14px 16px;
+  overflow-x: auto;
+  color: var(--color-foreground);
+  border: 1px solid var(--color-border);
+  background: var(--color-card);
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  line-height: 1.6;
+}
+
+
+@media (max-width: 900px) {
+  .pv {
+    height: auto;
+    min-height: 100svh;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .pv-scroll {
+    overflow: visible;
+  }
+
+  .pv-pane {
+    min-height: 300px;
+  }
+
+  .lc-search {
+    flex-wrap: wrap;
+  }
+
+  .lc-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .lc-row-tags {
+    display: none;
+  }
+}
+
+/* ==================================================================
+   Dashboard — Home
+   The review log turned into something you can read at a glance.
+   Hairline dividers, one inverted surface per panel, no decoration.
+================================================================== */
+.dash {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.dash-summary {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+  border: 1px solid var(--color-border);
+}
+
+.dash-status {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 26px;
+}
+
+.dash-date {
+  margin: 0;
+  color: var(--color-subtle-foreground);
+  font-size: 11px;
+}
+
+.dash-headline {
+  max-width: 26ch;
+  margin: 0;
+  font-size: clamp(24px, 3.6vw, 32px);
+  font-weight: 500;
+  letter-spacing: -0.05em;
+  line-height: 1.1;
+}
+
+.dash-note {
+  max-width: 46ch;
+  margin: 0;
+  color: var(--color-subtle-foreground);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.dash-status .button {
+  margin-top: 6px;
+}
+
+.dash-memory {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 10px;
+  padding: 26px;
+  border-left: 1px solid var(--color-border);
+  background: var(--color-card);
+}
+
+.dash-memory-label {
+  color: var(--color-subtle-foreground);
+  font-size: 11px;
+}
+
+.dash-memory-value {
+  font-size: clamp(36px, 5vw, 48px);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.06em;
+  line-height: 1;
+}
+
+.dash-memory-note {
+  color: var(--color-subtle-foreground);
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+.meter {
+  display: block;
+  height: 3px;
+  background: var(--color-border);
+}
+
+.meter-fill {
+  display: block;
+  height: 100%;
+  background: var(--color-foreground);
+  transition: width 320ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.stat-row {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid var(--color-border);
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 16px 18px;
+  min-width: 0;
+}
+
+.stat + .stat {
+  border-left: 1px solid var(--color-border);
+}
+
+.stat-value {
+  font-size: 28px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.05em;
+  line-height: 1.1;
+}
+
+.stat-label {
+  color: var(--color-subtle-foreground);
+  font-size: 11px;
+}
+
+.dash-panels {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.dash-panel {
+  min-width: 0;
+  padding: 20px;
+  border: 1px solid var(--color-border);
+}
+
+.panel-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.panel-title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+
+.panel-note {
+  color: var(--color-subtle-foreground);
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.panel-empty {
+  margin: 0;
+  color: var(--color-subtle-foreground);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.panel-foot {
+  margin: 14px 0 0;
+  color: var(--color-subtle-foreground);
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+/* ---- Activity chart ---- */
+.activity-grid {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  grid-template-rows: repeat(7, 10px);
+  gap: 4px;
+}
+
+.activity-cell {
+  display: block;
+  width: 100%;
+  height: 10px;
+  background: var(--color-muted);
+}
+
+.activity-cell.is-1 {
+  background: rgb(255 255 255 / 0.18);
+}
+
+.activity-cell.is-2 {
+  background: rgb(255 255 255 / 0.36);
+}
+
+.activity-cell.is-3 {
+  background: rgb(255 255 255 / 0.58);
+}
+
+.activity-cell.is-4 {
+  background: var(--color-foreground);
+}
+
+.activity-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 10px;
+  color: var(--color-subtle-foreground);
+  font-size: 10px;
+}
+
+.activity-scale {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.activity-scale .activity-cell {
+  width: 10px;
+}
+
+/* ---- Small lists ---- */
+.mini-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.mini-row {
+  width: 100%;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 0;
+  border: 0;
+  border-top: 1px solid var(--color-border);
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+}
+
+.mini-list > li:first-child > .mini-row,
+.mini-list > li:first-child > .recent-row {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.mini-row:hover .mini-row-name {
+  color: var(--color-hover);
+}
+
+.mini-row-name {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--color-muted-foreground);
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mini-row-when {
+  flex: none;
+  color: var(--color-subtle-foreground);
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+.mini-row-when.is-due {
+  color: var(--color-foreground);
+}
+
+.recent-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 0;
+  border-top: 1px solid var(--color-border);
+}
+
+.recent-meta {
+  flex: none;
+  color: var(--color-subtle-foreground);
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+/* ---- Rating mix ---- */
+.mix {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.mix-row {
+  display: grid;
+  grid-template-columns: minmax(64px, 108px) minmax(0, 1fr) 64px;
+  align-items: center;
+  gap: 10px;
+}
+
+.mix-label {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 12px;
+}
+
+.mix-label em {
+  color: var(--color-subtle-foreground);
+  font-size: 10px;
+  font-style: normal;
+}
+
+.mix-track {
+  height: 4px;
+  background: var(--color-muted);
+}
+
+.mix-fill {
+  display: block;
+  height: 100%;
+  background: var(--color-muted-foreground);
+  transition: width 320ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.mix-value {
+  color: var(--color-subtle-foreground);
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  white-space: nowrap;
+}
+
+/* ---- AI teaser ---- */
+.ai-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  gap: 26px;
+  padding: 24px;
+  border: 1px solid var(--color-border);
+  background: var(--color-card);
+}
+
+.ai-badge {
+  display: inline-block;
+  margin-bottom: 12px;
+  padding: 3px 7px;
+  border: 1px solid var(--color-line);
+  color: var(--color-subtle-foreground);
+  font-size: 10px;
+}
+
+.ai-title {
+  margin: 0 0 8px;
+  font-size: 18px;
+  font-weight: 500;
+  letter-spacing: -0.03em;
+}
+
+.ai-note {
+  margin: 0;
+  color: var(--color-subtle-foreground);
+  font-size: 12px;
+  line-height: 1.65;
+}
+
+.ai-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ai-list li {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 9px 0;
+  border-top: 1px solid var(--color-border);
+}
+
+.ai-list li:first-child {
+  padding-top: 0;
+  border-top: 0;
+}
+
+.ai-list strong {
+  color: var(--color-muted-foreground);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.ai-list span {
+  color: var(--color-subtle-foreground);
+  font-size: 11px;
+}
+
+/* ==================================================================
+   Profile — own account and the share link.
+================================================================== */
+.profile {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.profile-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 18px;
+  padding: 24px;
+  border: 1px solid var(--color-border);
+}
+
+.profile-big-avatar {
+  flex: none;
+  width: 64px;
+  height: 64px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  color: var(--color-background);
+  background: var(--color-foreground);
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.profile-big-avatar img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+.profile-head-copy {
+  flex: 1;
+  min-width: 190px;
+}
+
+.profile-name {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 500;
+  letter-spacing: -0.04em;
+  line-height: 1.1;
+}
+
+.profile-sub {
+  margin: 5px 0 0;
+  color: var(--color-subtle-foreground);
+  font-size: 11px;
+}
+
+.profile-bio {
+  margin: 8px 0 0;
+  color: var(--color-muted-foreground);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.profile-notice {
+  margin: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--color-danger);
+  color: var(--color-danger);
+  font-size: 12px;
+}
+
+.profile-memory {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.profile-memory strong {
+  font-size: 40px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.06em;
+  line-height: 1;
+}
+
+.profile-memory span {
+  color: var(--color-subtle-foreground);
+  font-size: 11px;
+}
+
+.profile-facts {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.profile-facts li {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 8px 0;
+  border-top: 1px solid var(--color-border);
+  font-size: 11px;
+}
+
+.profile-facts li:first-child {
+  border-top: 0;
+}
+
+.profile-facts span {
+  color: var(--color-subtle-foreground);
+}
+
+.profile-facts strong {
+  font-weight: 500;
+}
+
+.profile-fact-text {
+  max-width: 62%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.share-box {
+  display: flex;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.share-input {
+  flex: 1;
+  min-width: 0;
+  min-height: 40px;
+  padding: 0 12px;
+  border: 1px solid var(--color-line);
+  background: var(--color-background);
+  color: var(--color-muted-foreground);
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+
+.share-input:focus {
+  outline: none;
+  border-color: var(--color-line-hover);
+}
+
+.share-hint {
+  margin: 8px 0 0;
+  color: var(--color-subtle-foreground);
+  font-size: 11px;
+}
+
+.profile-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.profile-signout {
+  min-height: 40px;
+  padding: 0 16px;
+  border: 1px solid var(--color-line);
+  background: transparent;
+  color: var(--color-muted-foreground);
+  cursor: pointer;
+  font-size: 13px;
+  transition:
+    color 160ms ease,
+    border-color 160ms ease,
+    background 160ms ease;
+}
+
+.profile-signout:hover {
+  color: var(--color-foreground);
+  border-color: var(--color-line-hover);
+  background: var(--color-muted);
+}
+
+.tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tag-list li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border: 1px solid var(--color-border);
+  color: var(--color-muted-foreground);
+  font-size: 11px;
+}
+
+.tag-list strong {
+  color: var(--color-foreground);
+  font-weight: 500;
+}
+
+.profile-footnote {
+  margin: 0;
+  color: var(--color-subtle-foreground);
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+/* ==================================================================
+   Public profile — /p/:token, no session required.
+================================================================== */
+.public {
+  min-height: 100svh;
+  padding: 28px clamp(18px, 5vw, 48px) 64px;
+  color: var(--color-foreground);
+  background: var(--color-background);
+}
+
+.public-top {
+  max-width: 920px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 0 auto 40px;
+}
+
+.public-wordmark {
+  color: var(--color-foreground);
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -0.04em;
+  text-decoration: none;
+}
+
+.public-top-link {
+  padding-bottom: 2px;
+  border-bottom: 1px solid var(--color-line);
+  color: var(--color-muted-foreground);
+  font-size: 12px;
+  text-decoration: none;
+}
+
+.public-top-link:hover {
+  color: var(--color-foreground);
+  border-color: var(--color-line-hover);
+}
+
+.public-card {
+  max-width: 920px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  margin: 0 auto;
+  padding: clamp(20px, 4vw, 36px);
+  border: 1px solid var(--color-border);
+  background: var(--color-card);
+}
+
+.public-identity {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.public-title {
+  margin: 0;
+  font-size: clamp(24px, 4vw, 34px);
+  font-weight: 500;
+  letter-spacing: -0.05em;
+  line-height: 1.1;
+}
+
+.public-note {
+  max-width: 52ch;
+  margin: 4px 0 0;
+  color: var(--color-subtle-foreground);
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+.public-columns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+}
+
+.public-block {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+.public-memory {
+  margin: 0;
+  font-size: 40px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.06em;
+  line-height: 1;
+}
+
+.public-footnote {
+  margin: 0;
+  padding-top: 18px;
+  border-top: 1px solid var(--color-border);
+  color: var(--color-subtle-foreground);
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+/* ---- Practice and Learn additions ---- */
+.practice-recall {
+  margin-left: auto;
+  color: var(--color-subtle-foreground);
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.lc-sheet {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 6px 0 16px;
+}
+
+.lc-sheet-progress {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.lc-sheet-progress .sheet-bar {
+  flex: 1;
+  margin-top: 0;
+}
+
+.lc-sheet-meta {
+  flex: none;
+  color: var(--color-subtle-foreground);
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.button:disabled:active {
+  transform: none;
+}
+
+@media (max-width: 720px) {
+  .dash-summary {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .dash-memory {
+    border-top: 1px solid var(--color-border);
+    border-left: 0;
+  }
+
+  .dash-panels,
+  .ai-card,
+  .public-columns {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .stat-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .stat:nth-child(odd) {
+    border-left: 0;
+  }
+
+  .stat:nth-child(n + 3) {
+    border-top: 1px solid var(--color-border);
+  }
+
+  .lc-sheet {
+    flex-wrap: wrap;
+  }
+
+  .lc-sheet-progress {
+    flex-basis: 100%;
+  }
+
+  .mix-row {
+    grid-template-columns: 74px minmax(0, 1fr) 52px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
